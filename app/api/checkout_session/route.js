@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const formatAmountForStripe = (amount) => {
@@ -12,7 +13,13 @@ export async function GET(req) {
 
     try {
         const checkoutSession = await stripe.checkout.sessions.retrieve(session_id);
-        return NextResponse.json(checkoutSession);
+        // Handle payment status
+        if (checkoutSession.payment_status === 'paid') {
+            // Logic to update user subscription status if needed
+            return NextResponse.json(checkoutSession);
+        } else {
+            return NextResponse.json({ error: { message: 'Payment not completed' } }, { status: 400 });
+        }
     } catch (err) {
         return NextResponse.json({ error: { message: err.message } }, { status: 500 });
     }
@@ -38,8 +45,8 @@ export async function POST(req) {
                 quantity: 1,
             },
         ],
-        success_url: `${req.headers.get('origin')}/result?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${req.headers.get('origin')}/result?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${req.headers.get('origin')}/?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.get('origin')}/`,
     };
 
     try {

@@ -1,64 +1,87 @@
 'use client';
 
-import getStripe from "@/utils/get-stripe";
-import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
-import { Container } from "@mui/system";
-import { AppBar, Button, Toolbar, Typography, Box, Grid } from "@mui/material";
-import Head from "next/head";
-import { useRouter } from 'next/navigation';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import getStripe from '@/utils/get-stripe';
+import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
+import { Container } from '@mui/system';
+import { AppBar, Button, Toolbar, Typography, Box, Grid } from '@mui/material';
+import Head from 'next/head';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from 'axios';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#007BFF',
+    },
+    secondary: {
+      main: '#FF4081',
+    },
+    background: {
+      default: '#F5F5F5',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", sans-serif',
+  },
+});
 
 export default function Home() {
   const router = useRouter();
   const { user } = useUser();
   const [userPlan, setUserPlan] = useState(null);
-
-  const theme = createTheme({
-    palette: {
-      primary: {
-        main: '#007BFF', // Your primary color
-      },
-      secondary: {
-        main: '#FF4081', // Secondary color
-      },
-      background: {
-        default: '#F5F5F5', // Background color
-      },
-    },
-    typography: {
-      fontFamily: '"Roboto", sans-serif',
-    },
-  });
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (user) {
-      // Fetch user's subscription plan from your backend
-      axios.get(`/api/user-plan?userId=${user.id}`)
-        .then((response) => {
-          setUserPlan(response.data.plan); // Assumes response has a "plan" field
-        })
-        .catch((error) => {
-          console.error('Error fetching user plan:', error);
-        });
-    }
-  }, [user]);
+    const checkSession = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+
+      if (sessionId) {
+        try {
+          const response = await axios.get(`/api/create-checkout-session?session_id=${sessionId}`);
+          const session = response.data;
+
+          if (session.payment_status === 'paid') {
+            // Update user subscription status if needed
+            // For example, you might update the user's subscription in your database
+            // Here, we're just setting the user plan directly for simplicity
+            setUserPlan(session.metadata.plan); // Adjust based on your metadata setup
+            // Redirect based on the plan
+            if (session.metadata.plan === 'Pro') {
+              router.push('/full-access');
+            } else if (session.metadata.plan === 'Basic') {
+              router.push('/generate-cards');
+            }
+          } else {
+            alert('Payment was not completed successfully.');
+          }
+        } catch (err) {
+          console.error('Error fetching session:', err);
+          setError('Failed to fetch payment session. Please try again later.');
+        }
+      }
+    };
+
+    checkSession();
+  }, [router]);
 
   const handleGetStarted = () => {
     if (!user) {
       router.push('/sign-up');
     } else if (!userPlan) {
       alert('Please choose a plan to get started!');
-      // Instead of redirecting, scroll to the pricing section
       const pricingSection = document.getElementById('pricing');
       if (pricingSection) {
         pricingSection.scrollIntoView({ behavior: 'smooth' });
       }
     } else if (userPlan === 'Pro') {
-      router.push('/full-access'); // Redirect to the full access area
+      router.push('/full-access');
     } else if (userPlan === 'Basic') {
-      router.push('/generate-cards'); // Redirect to the card generation page
+      router.push('/generate-cards');
+    } else {
+      alert('Invalid plan. Please contact support.');
     }
   };
 
@@ -159,7 +182,7 @@ export default function Home() {
                 <Typography>
                   Access to basic flash card features and limited storage.
                 </Typography>
-                <a href="https://buy.stripe.com/test_9AQg2H06KagjdKo9AD" style={{ textDecoration: 'none' }}>
+                <a href="https://buy.stripe.com/8wM2ag6QDcAZccU288" style={{ textDecoration: 'none' }}>
                   <Button
                     variant="contained"
                     color="primary"
