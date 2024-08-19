@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import getStripe from '@/utils/get-stripe';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 import { Container } from '@mui/system';
 import { AppBar, Button, Toolbar, Typography, Box, Grid } from '@mui/material';
@@ -67,6 +66,7 @@ export default function Home() {
     checkSession();
   }, [router]);
 
+  
   const handleGetStarted = () => {
     if (!user) {
       router.push('/sign-up');
@@ -82,6 +82,16 @@ export default function Home() {
       router.push('/generate-cards');
     } else {
       alert('Invalid plan. Please contact support.');
+    }
+  };
+
+  const handleHaveAccRedirect = () => {
+    if (!user) {
+      // Redirect to sign-up page if the user is not authenticated
+      router.push('/sign-up');
+    } else {
+      // Redirect to generate-cards page if the user is authenticated
+      router.push('/generate');
     }
   };
 
@@ -135,6 +145,14 @@ export default function Home() {
             onClick={handleGetStarted}
           >
             Get Started
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            sx={{ mt: 2, px: 5, py: 2, fontSize: '1.2rem', borderRadius: '50px' }}
+            onClick={handleHaveAccRedirect}
+          >
+            Already have an account? Generate Cards
           </Button>
         </Box>
 

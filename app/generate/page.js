@@ -6,19 +6,28 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { collection, writeBatch, doc, getDoc } from "firebase/firestore";
 import { AppBar, Box, Container, IconButton, Toolbar, TextField, Typography, Paper, Button, Card, CardActionArea, CardContent, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, CircularProgress, Tooltip, Grid } from "@mui/material";
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import { UserButton } from '@clerk/nextjs';
+
 
 export default function Generate() {
     const { user, isLoading } = useUser();
     const router = useRouter();
 
-    useEffect(() => {
-        if (!isLoading && !user) {
-            router.push('/sign-up'); // Redirect to sign-up page if not authenticated
-        }
-    }, [isLoading, user, router]);
+    const YourComponent = () => {
+        const router = useRouter();
+        const { isLoaded, user } = useAuth(); // Clerk's useAuth hook to get authentication status at to it
+      
+        useEffect(() => {
+          if (isLoaded) { // Wait for authentication status to be loaded
+            if (!user) {
+              router.push('/sign-up'); // Redirect to sign-up page if not authenticated
+            } else {
+              router.push('/generate'); // Redirect to generate page if authenticated
+            }
+          }
+        }, [isLoaded, user, router]);
+      };
 
     const [flashcards, setFlashcards] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
