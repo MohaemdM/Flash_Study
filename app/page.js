@@ -225,9 +225,9 @@ export default function Home() {
                 <Typography variant="h5" gutterBottom>Pro</Typography>
                 <Typography variant="subtitle1" gutterBottom> $10 / Month</Typography>
                 <Typography>
-                  Unlimited flashcards and storage, with priority support.
+                  Access to Generating flashcards and saving to a collection.
                 </Typography>
-                <a href="https://buy.stripe.com/test_9AQ7wb3iWdsv5dS5ko" style={{ textDecoration: 'none' }}>
+                <a href="https://buy.stripe.com/fZe7uA5MzdF3gta5kl" style={{ textDecoration: 'none' }}>
                   <Button
                     variant="contained"
                     color="secondary"
